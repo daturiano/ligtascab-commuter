@@ -1,26 +1,87 @@
-import { AntDesign } from '@expo/vector-icons';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import QRScanner from '~/components/QRScanner';
+import { AntDesign, Feather, FontAwesome6 } from '@expo/vector-icons';
+import { BarcodeScanningResult, CameraType, CameraView, useCameraPermissions } from 'expo-camera';
+import { useEffect, useState } from 'react';
+import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function Scan() {
+  const [visible, setVisible] = useState(false);
+  const [facing, setFacing] = useState<CameraType>('back');
+  const [permission, requestPermission] = useCameraPermissions();
+  const [scanResult, setScanResult] = useState<string | null>(null);
+  const [cameraDisabled, setCameraDisabled] = useState(false);
+
+  useEffect(() => {
+    requestPermission();
+  }, [requestPermission]);
+
+  if (!permission) {
+    return <View />;
+  }
+
+  function toggleCameraFacing() {
+    setFacing((current) => (current === 'back' ? 'front' : 'back'));
+  }
+
+  const onScanSuccess = (result: string) => {
+    setScanResult(result);
+    setCameraDisabled(true);
+    setVisible(true);
+  };
+
   return (
-    <View style={styles.container}>
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <View style={styles.cardIconContainer}>
-            <AntDesign name="qrcode" size={42} color="#1daa88" />
+    <>
+      <View style={styles.container}>
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <View style={styles.cardIconContainer}>
+              <AntDesign name="qrcode" size={42} color="#1daa88" />
+            </View>
+          </View>
+          <Text style={styles.cardTitle}>Scan the QR Code</Text>
+          <View style={styles.cameraContainer}>
+            <CameraView
+              active={!cameraDisabled}
+              style={styles.camera}
+              facing={facing}
+              onBarcodeScanned={(scanningResult: BarcodeScanningResult) => {
+                if (!!scanningResult.data) {
+                  onScanSuccess(scanningResult.data);
+                }
+              }}
+              barcodeScannerSettings={{
+                barcodeTypes: ['qr'],
+              }}>
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity onPress={toggleCameraFacing}>
+                  <FontAwesome6 name="camera-rotate" size={24} color="#ffffff" />
+                </TouchableOpacity>
+              </View>
+            </CameraView>
+          </View>
+          <Text style={styles.cardDescription}>
+            Scan the QR to get your tricycle&apos;s details and to start and confirm your ride.
+          </Text>
+          <Pressable style={styles.cardButton}>
+            <Text style={styles.buttonText}>Start Ride</Text>
+          </Pressable>
+        </View>
+      </View>
+      <Modal visible={visible} transparent animationType="none">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Pressable
+              style={styles.modalExitButton}
+              onPress={() => {
+                setVisible(false);
+                setCameraDisabled(false);
+                setScanResult(null);
+              }}>
+              <Feather name="x" size={24} color="black" />
+            </Pressable>
           </View>
         </View>
-        <Text style={styles.cardTitle}>Scan the QR Code</Text>
-        <QRScanner />
-        <Text style={styles.cardDescription}>
-          Scan the QR to get your tricycle&apos;s details and to start and confirm your ride.
-        </Text>
-        <Pressable style={styles.cardButton}>
-          <Text style={styles.buttonText}>Start Ride</Text>
-        </Pressable>
-      </View>
-    </View>
+      </Modal>
+    </>
   );
 }
 
@@ -83,5 +144,37 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 700,
     color: '#1daa88',
+  },
+  camera: {
+    flex: 1,
+  },
+  cameraContainer: {
+    width: '100%',
+    height: '50%',
+    justifyContent: 'center',
+    borderWidth: 8,
+    borderColor: '#ffffff',
+  },
+  buttonContainer: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+  },
+  modalOverlay: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  modalContent: {
+    height: '40%',
+    width: '90%',
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 12,
+  },
+  modalExitButton: {
+    width: '100%',
+    alignItems: 'flex-end',
   },
 });
