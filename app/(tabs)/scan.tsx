@@ -1,14 +1,40 @@
-import { AntDesign, Feather, FontAwesome6 } from '@expo/vector-icons';
+import { AntDesign, FontAwesome6 } from '@expo/vector-icons';
+import { useIsFocused } from '@react-navigation/native';
+import { useQuery } from '@tanstack/react-query';
 import { BarcodeScanningResult, CameraType, CameraView, useCameraPermissions } from 'expo-camera';
 import { useEffect, useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import ScanModalContent from '~/components/ScanModalContent';
+import ScanModalError from '~/components/ScanModalError';
+import { fetchTricycleDetails } from '~/services/tricycles';
+import { Tricycle } from '~/types/types';
 
 export default function Scan() {
-  const [visible, setVisible] = useState(false);
-  const [facing, setFacing] = useState<CameraType>('back');
+  //Camera States
   const [permission, requestPermission] = useCameraPermissions();
-  const [scanResult, setScanResult] = useState<string | null>(null);
   const [cameraDisabled, setCameraDisabled] = useState(false);
+  const [facing, setFacing] = useState<CameraType>('back');
+
+  //Modal States
+  const [visible, setVisible] = useState(false);
+  const [scanResult, setScanResult] = useState<string | null>(null);
+  const [scanError, setScanError] = useState<string | null>(null);
+  const isFocused = useIsFocused();
+
+  const { data: tricycle, isLoading } = useQuery<Tricycle | null>({
+    queryKey: ['tricycle-details', scanResult],
+    queryFn: async () => {
+      if (!scanResult) return null;
+      const { data, error } = await fetchTricycleDetails(scanResult);
+      if (error) {
+        setScanError('Invalid QR Code. Please try again.');
+      }
+      return data;
+    },
+    enabled: !!scanResult,
+    subscribed: isFocused,
+    retry: false,
+  });
 
   useEffect(() => {
     requestPermission();
@@ -26,6 +52,13 @@ export default function Scan() {
     setScanResult(result);
     setCameraDisabled(true);
     setVisible(true);
+  };
+
+  const exitModalHandler = () => {
+    setScanError(null);
+    setCameraDisabled(false);
+    setVisible(false);
+    setScanResult(null);
   };
 
   return (
@@ -61,26 +94,26 @@ export default function Scan() {
           <Text style={styles.cardDescription}>
             Scan the QR to get your tricycle&apos;s details and to start and confirm your ride.
           </Text>
-          <Pressable style={styles.cardButton}>
+          <Pressable style={styles.cardButton} disabled={true}>
             <Text style={styles.buttonText}>Start Ride</Text>
           </Pressable>
         </View>
       </View>
-      <Modal visible={visible} transparent animationType="none">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Pressable
-              style={styles.modalExitButton}
-              onPress={() => {
-                setVisible(false);
-                setCameraDisabled(false);
-                setScanResult(null);
-              }}>
-              <Feather name="x" size={24} color="black" />
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
+      {scanError !== null && (
+        <ScanModalError
+          visible={visible}
+          scanError={scanError}
+          exitModalHandler={exitModalHandler}
+        />
+      )}
+      {tricycle && (
+        <ScanModalContent
+          visible={visible}
+          isLoading={isLoading}
+          tricycle={tricycle}
+          exitModalHandler={exitModalHandler}
+        />
+      )}
     </>
   );
 }
@@ -159,22 +192,5 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 20,
     bottom: 20,
-  },
-  modalOverlay: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0,0,0,0.3)',
-  },
-  modalContent: {
-    height: '40%',
-    width: '90%',
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 12,
-  },
-  modalExitButton: {
-    width: '100%',
-    alignItems: 'flex-end',
   },
 });
