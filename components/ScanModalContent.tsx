@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Tricycle } from '~/types/types';
 import { formatDate } from '~/utils/utils';
@@ -15,6 +16,7 @@ export default function ScanModalContent({
   tricycle,
   exitModalHandler,
 }: ScanModalContentProps) {
+  const router = useRouter();
   return (
     <Modal visible={visible} transparent animationType="none">
       <View style={styles.modalOverlay}>
@@ -45,7 +47,12 @@ export default function ScanModalContent({
                   onPress={exitModalHandler}>
                   <Text>No</Text>
                 </Pressable>
-                <Pressable style={[styles.tricycleCardButton, { backgroundColor: '#1daa88' }]}>
+                <Pressable
+                  style={[styles.tricycleCardButton, { backgroundColor: '#1daa88' }]}
+                  onPress={() => {
+                    router.setParams({ tricycle_id: tricycle.id });
+                    router.push('/inside/in-ride');
+                  }}>
                   <Text style={{ color: '#ffffff' }}>Yes</Text>
                 </Pressable>
               </View>
