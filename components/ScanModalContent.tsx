@@ -50,8 +50,11 @@ export default function ScanModalContent({
                 <Pressable
                   style={[styles.tricycleCardButton, { backgroundColor: '#1daa88' }]}
                   onPress={() => {
-                    router.setParams({ tricycle_id: tricycle.id });
-                    router.push('/inside/in-ride');
+                    exitModalHandler();
+                    router.push({
+                      pathname: '/inside/in-ride',
+                      params: { tricycle_id: tricycle.id },
+                    });
                   }}>
                   <Text style={{ color: '#ffffff' }}>Yes</Text>
                 </Pressable>

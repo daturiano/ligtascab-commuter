@@ -8,14 +8,14 @@ import {
 } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
-import { useGlobalSearchParams } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import TricycleDetailsCard from '~/components/TricycleDetailsCard';
 import { fetchTricycleDetails } from '~/services/tricycles';
 import { Tricycle } from '~/types/types';
 
 export default function InRidePage() {
-  const { tricycle_id } = useGlobalSearchParams<{ tricycle_id: string }>();
+  const { tricycle_id } = useLocalSearchParams<{ tricycle_id: string }>();
 
   const { data: tricycle, isLoading } = useQuery<Tricycle | null>({
     queryKey: ['tricycle-details', tricycle_id],
@@ -26,63 +26,73 @@ export default function InRidePage() {
     retry: false,
   });
 
+  // if (!tricycle) return null;
+
   return (
     <View style={styles.container}>
-      <View style={styles.cardContainer}>
-        <View>
-          <Text style={styles.cardHeader}>Tricycle&apos;s Information</Text>
-          <Text style={{ color: '#dee2e6' }}>Ride ID: 01239123582343</Text>
-        </View>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <TricycleDetailsCard title="Driver" name="Walt Haughfin">
-            <View style={styles.avatar}>
-              <AntDesign name="user" size={24} color="black" />
-            </View>
-          </TricycleDetailsCard>
-          <TricycleDetailsCard title="Operator" name="Bella Wright">
-            <View style={styles.avatar}>
-              <AntDesign name="user" size={24} color="black" />
-            </View>
-          </TricycleDetailsCard>
-        </View>
-        <View style={styles.contentContainer}>
-          <View style={styles.imageContainer}>
-            <Image style={styles.image} source={require('~/assets/sample-tricycle.png')} />
-          </View>
-          <View style={{ flexDirection: 'column', width: '100%', gap: 10 }}>
-            <TricycleDetailsCard title="Plate Number" name="Bella Wright">
-              <MaterialIcons name="numbers" size={22} color="black" />
-            </TricycleDetailsCard>
-            <TricycleDetailsCard title="Seating Capacity" name="Bella Wright">
-              <Feather name="users" size={22} color="black" />
-            </TricycleDetailsCard>
-            <TricycleDetailsCard title="Franchise Number" name="Bella Wright">
-              <MaterialCommunityIcons name="file-document-outline" size={22} color="black" />
-            </TricycleDetailsCard>
-          </View>
-        </View>
-        <View style={styles.routeContainer}>
-          <FontAwesome5 name="route" size={32} color="black" />
+      {isLoading ? (
+        <ActivityIndicator />
+      ) : (
+        <View style={styles.cardContainer}>
           <View>
-            <Text style={{ color: '#868e96', fontSize: 12 }}>Routes</Text>
-            <View style={styles.routeList}>
-              <Text>Centro</Text>
-              <Octicons name="arrow-switch" size={18} color="black" />
-              <Text>Panganiban</Text>
+            <Text style={styles.cardHeader}>Tricycle&apos;s Information</Text>
+            <Text style={{ color: '#dee2e6' }}>Ride ID: 01239123582343</Text>
+          </View>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <TricycleDetailsCard title="Driver" name="Walt Haughfin">
+              <View style={styles.avatar}>
+                <AntDesign name="user" size={24} color="black" />
+              </View>
+            </TricycleDetailsCard>
+            <TricycleDetailsCard title="Operator" name="Bella Wright">
+              <View style={styles.avatar}>
+                <AntDesign name="user" size={24} color="black" />
+              </View>
+            </TricycleDetailsCard>
+          </View>
+          <View style={styles.contentContainer}>
+            <View style={styles.imageContainer}>
+              <Image style={styles.image} source={require('~/assets/sample-tricycle.png')} />
             </View>
-            <View style={styles.routeList}>
-              <Text>Centro</Text>
-              <Octicons name="arrow-switch" size={18} color="black" />
-              <Text>Penafrancia</Text>
+            <View style={{ flexDirection: 'column', width: '100%', gap: 15 }}>
+              <TricycleDetailsCard title="Plate Number" name={tricycle?.plate_number ?? ''}>
+                <MaterialIcons name="numbers" size={22} color="black" />
+              </TricycleDetailsCard>
+              <TricycleDetailsCard
+                title="Seating Capacity"
+                name={tricycle?.tricycle_details.seating_capacity ?? ''}>
+                <Feather name="users" size={22} color="black" />
+              </TricycleDetailsCard>
+              <TricycleDetailsCard
+                title="Franchise Number"
+                name={tricycle?.compliance_details.franchise_number ?? ''}>
+                <MaterialCommunityIcons name="file-document-outline" size={22} color="black" />
+              </TricycleDetailsCard>
             </View>
-            <View style={styles.routeList}>
-              <Text>Centro</Text>
-              <Octicons name="arrow-switch" size={18} color="black" />
-              <Text>Conception Pequena</Text>
+          </View>
+          <View style={styles.routeContainer}>
+            <FontAwesome5 name="route" size={32} color="black" />
+            <View>
+              <Text style={{ color: '#868e96', fontSize: 12 }}>Routes</Text>
+              <View style={styles.routeList}>
+                <Text>Centro</Text>
+                <Octicons name="arrow-switch" size={18} color="black" />
+                <Text>Panganiban</Text>
+              </View>
+              <View style={styles.routeList}>
+                <Text>Centro</Text>
+                <Octicons name="arrow-switch" size={18} color="black" />
+                <Text>Penafrancia</Text>
+              </View>
+              <View style={styles.routeList}>
+                <Text>Centro</Text>
+                <Octicons name="arrow-switch" size={18} color="black" />
+                <Text>Conception Pequena</Text>
+              </View>
             </View>
           </View>
         </View>
-      </View>
+      )}
     </View>
   );
 }
@@ -96,7 +106,7 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     width: '90%',
-    height: '48%',
+    height: '50%',
     backgroundColor: '#1daa88',
     borderRadius: 12,
     padding: 16,
@@ -108,8 +118,8 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   imageContainer: {
-    width: 151,
-    height: 151,
+    width: 152,
+    height: 162,
     borderRadius: 8,
     borderWidth: 2,
     borderColor: '#fff',
