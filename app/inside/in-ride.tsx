@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import InRideOptions from '~/components/InRideOptions';
 import TricycleDetailsCard from '~/components/TricycleDetailsCard';
 import { fetchTricycleDetails } from '~/services/tricycles';
 import { Tricycle } from '~/types/types';
@@ -93,6 +94,7 @@ export default function InRidePage() {
           </View>
         </View>
       )}
+      {!isLoading && <InRideOptions />}
     </View>
   );
 }
@@ -103,6 +105,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#ffffff',
+    gap: 16,
   },
   cardContainer: {
     width: '90%',
