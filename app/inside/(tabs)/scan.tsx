@@ -74,7 +74,7 @@ export default function Scan() {
           <View style={styles.cameraContainer}>
             <CameraView
               active={!cameraDisabled}
-              style={styles.camera}
+              style={StyleSheet.absoluteFill}
               facing={facing}
               onBarcodeScanned={(scanningResult: BarcodeScanningResult) => {
                 if (!!scanningResult.data) {
@@ -83,13 +83,13 @@ export default function Scan() {
               }}
               barcodeScannerSettings={{
                 barcodeTypes: ['qr'],
-              }}>
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity onPress={toggleCameraFacing}>
-                  <FontAwesome6 name="camera-rotate" size={24} color="#ffffff" />
-                </TouchableOpacity>
-              </View>
-            </CameraView>
+              }}
+            />
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity onPress={toggleCameraFacing}>
+                <FontAwesome6 name="camera-rotate" size={24} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
           </View>
           <Text style={styles.cardDescription}>
             Scan the QR to get your tricycle&apos;s details and to start and confirm your ride.
@@ -182,11 +182,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cameraContainer: {
+    position: 'relative',
     width: '100%',
     height: '50%',
     justifyContent: 'center',
     borderWidth: 8,
     borderColor: '#ffffff',
+    overflow: 'hidden',
   },
   buttonContainer: {
     position: 'absolute',
